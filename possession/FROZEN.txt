@@ -1,0 +1,9 @@
+version: v1 (Phase 3 calibration on the Metrica proxy, quantile transfer; see notes/calibration-progress.md)
+date: 2026-11-16
+command: python -m possession
+code: git commit 400dd73 (branch submission)
+file: evaluation/results/Verynicestyleturbo.csv, copy at evaluation/results/Verynicestyleturbo_v1.csv (gitignored)
+sha256: e09133425dce724a8ddfb62054b6e1e10272343f0308b6a36946aee5457f1f88
+rows: 199319, validator OK, two consecutive plain runs of the command gave the same sha256
+smoke (scored once, selects nothing): spellF1 0.422, median latency -12 frames
+previous: v0 sha256 36e19f4c184f3e12629e77b7eb10b23b5492e91fa0ff5596205707bcd2dc0ce3 (Verynicestyleturbo_v0.csv)

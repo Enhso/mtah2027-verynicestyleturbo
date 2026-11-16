@@ -1,0 +1,1 @@
+{"params": {"carry_radius": 3.0, "carry_margin": 0.5, "carry_dv": 8.0, "touch_dv": 1.5, "touch_angle": 35.0, "touch_radius": 2.5, "low_speed": 1.5, "low_w": 0.05, "min_dead_frames": 75}}

@@ -1,0 +1,253 @@
+match BAR-ATH frames 199319 fps 25 pitch 105.3x68.0 slots 46 (home 24, away 22) tags 638 graded frames 158857
+
+====================================================================================================
+Q1 Do positions leave the 0 to 1 range?
+====================================================================================================
+ball all frames      n=113488 x[min -0.0652 max 1.1139] y[min -0.1071 max 1.4885] share outside 0.04374 (x 0.00556, y 0.03818)
+ball graded          n=94214 x[min -0.0652 max 1.0623] y[min -0.1071 max 1.3377] share outside 0.04192 (x 0.00639, y 0.03553)
+players all frames   n=3782421 x[min -0.0392 max 1.0433] y[min -0.0700 max 1.0825] share outside 0.01161 (x 0.00145, y 0.01026)
+players graded       n=3254570 x[min -0.0392 max 1.0433] y[min -0.0700 max 1.0825] share outside 0.00928 (x 0.00163, y 0.00777)
+ball graded, metres beyond nearest line when outside: n=3949 q50=1.94 q90=9.55 q99=20.47
+ball graded visible share 0.5933; offpitch frames (v0 rule) share of visible 0.04190
+ball graded outside the lines by more than 0.25 m: share of outside frames 0.931
+ball graded outside the lines by more than 0.50 m: share of outside frames 0.846
+ball graded outside the lines by more than 1.00 m: share of outside frames 0.639
+ball graded outside the lines by more than 2.00 m: share of outside frames 0.494
+off-pitch runs: count 81 duration s: n=81 q5=0.1 q25=0.3 q50=0.8 q75=3.3 q95=7.4
+
+====================================================================================================
+Q2 Blackout anatomy per gap class (gaps after v0 interpolation of <=5 frame holes)
+====================================================================================================
+interior gaps 134 (gaps touching a period edge, skipped: 3)
+graded frames inside interior gaps: 64060 (0.403 of graded)
+6-25f (<1s)        count    3 dur_s: n=3 q5=0.41 q25=0.44 q50=0.48 q75=0.68 q95=0.84
+   start within 3m of line 0.000; ... and outward>=0.5 m/s 0.000; outward>=0 0.000; exit channel fires 0.000; long-gap channel fires 0.000; either 0.000
+   end within 3m of a line 0.000; end within 3m of a restart spot (centre/corner/goal-kick) 0.000; end within 3m of line or spot 0.000
+   ball speed last frame before: n=3 q25=2.48 q50=4.29 q75=4.72 q95=5.06
+   ball speed first frame after: n=3 q25=8.17 q50=9.89 q75=10.29 q95=10.62
+26-125f (1-5s)     count 0
+126-750f (5-30s)   count  112 dur_s: n=112 q5=5.40 q25=6.98 q50=10.68 q75=17.58 q95=25.30
+   start within 3m of line 0.348; ... and outward>=0.5 m/s 0.241; outward>=0 0.295; exit channel fires 0.241; long-gap channel fires 0.000; either 0.241
+   end within 3m of a line 0.330; end within 3m of a restart spot (centre/corner/goal-kick) 0.080; end within 3m of line or spot 0.366
+   ball speed last frame before: n=112 q25=0.84 q50=1.83 q75=4.52 q95=9.88
+   ball speed first frame after: n=112 q25=4.32 q50=11.52 q75=16.53 q95=26.96
+>750f (>30s)       count   19 dur_s: n=19 q5=31.05 q25=38.10 q50=45.64 q75=54.88 q95=146.92
+   start within 3m of line 0.316; ... and outward>=0.5 m/s 0.211; outward>=0 0.316; exit channel fires 0.211; long-gap channel fires 1.000; either 1.000
+   end within 3m of a line 0.368; end within 3m of a restart spot (centre/corner/goal-kick) 0.263; end within 3m of line or spot 0.579
+   ball speed last frame before: n=19 q25=0.47 q50=1.44 q75=5.29 q95=8.37
+   ball speed first frame after: n=19 q25=8.07 q50=15.40 q75=28.37 q95=34.78
+exit-rule sweep, share of gaps (classes >=5 s) whose start fires: dist<=D and outward speed>=V
+  D=3m: V>=0.5: 0.237  V>=0.0: 0.298  V>=-9.9: 0.344   start-or-end near line/spot (<=D, any velocity): 0.534
+  D=5m: V>=0.5: 0.305  V>=0.0: 0.397  V>=-9.9: 0.466   start-or-end near line/spot (<=D, any velocity): 0.695
+  D=8m: V>=0.5: 0.382  V>=0.0: 0.489  V>=-9.9: 0.603   start-or-end near line/spot (<=D, any velocity): 0.802
+share of >=5 s blackout frames inside a gap where exit or long-gap fires: 0.592
+
+====================================================================================================
+Q3 Median player speed (m/s) in visible frames, blackouts by class, pre-kickoff block
+====================================================================================================
+visible, graded, excl pre-kickoff    n=91871 q5=0.82 q10=1.01 q25=1.29 q50=1.72 q75=2.69 q90=3.52 q95=4.05
+pre-kickoff block (dead)             n=2934 q5=0.55 q10=0.69 q25=0.96 q50=1.17 q75=1.34 q90=1.54 q95=1.79
+blackout 6-25f (<1s)                 n=24 q5=0.73 q10=2.70 q25=3.02 q50=3.38 q75=3.80 q90=3.90 q95=3.92
+blackout 26-125f (1-5s)              n=122 q5=0.75 q10=0.76 q25=0.85 q50=0.90 q75=0.93 q90=0.98 q95=0.99
+blackout 126-750f (5-30s)            n=35254 q5=0.50 q10=0.61 q25=0.85 q50=1.16 q75=1.43 q90=1.97 q95=2.90
+blackout >750f (>30s)                n=28223 q5=0.18 q10=0.24 q25=0.42 q50=0.80 q75=1.22 q90=1.42 q95=1.53
+pre-kickoff block ball visible share 0.808
+low-activity (median speed < thr for >= 3 s): share of frames firing
+   vis-q     thr |  visible   pre-kick   blackout         bk>30s | ratio pre/visible  logodds(pre vs visible)
+      2%   0.629 |    0.010      0.000      0.165          0.311 |    0.0  -9.25
+      5%   0.820 |    0.029      0.063      0.283          0.435 |    2.2  +0.82
+     10%   1.006 |    0.055      0.065      0.402          0.538 |    1.2  +0.17
+     15%   1.118 |    0.087      0.202      0.486          0.602 |    2.3  +0.97
+     20%   1.212 |    0.124      0.354      0.565          0.677 |    2.9  +1.35
+     25%   1.294 |    0.163      0.491      0.636          0.740 |    3.0  +1.60
+     35%   1.453 |    0.251      0.697      0.775          0.868 |    2.8  +1.93
+     50%   1.717 |    0.414      0.834      0.893          0.950 |    2.0  +1.96
+v0 first value 1.5 m/s sits at visible-frame quantile 38.1%
+
+====================================================================================================
+Q4 Which slots are not players?
+====================================================================================================
+slot team  presence touchline1m    outside  meanspeed
+   0    0    0.4376      0.0039     0.0017       1.93
+   1    0    0.4216      0.0077     0.0039       2.10
+   2    0    0.5747      0.0182     0.0086       1.95
+   3    0    0.3996      0.0159     0.0111       1.95
+   4    0    0.0780      0.0024     0.0000       2.06
+   5    0    0.6948      0.0232     0.0127       1.85
+   6    0    0.2755      0.0163     0.0043       1.76
+   7    0    0.1298      0.0070     0.0016       1.83
+   8    0    0.4353      0.0222     0.0096       1.77
+   9    0    0.4044      0.0126     0.0106       1.91
+  10    0    0.4093      0.0254     0.0136       1.86
+  11    0    0.4553      0.0314     0.0199       1.88
+  12    0    0.1683      0.0470     0.0362       1.60
+  13    0    0.5071      0.0212     0.0096       1.94
+  14    0    0.7906      0.0113     0.0060       1.79
+  15    0    0.4893      0.0152     0.0044       1.84
+  16    0    0.6576      0.0176     0.0078       1.88
+  17    0    0.5220      0.0196     0.0122       1.86
+  18    0    0.4439      0.0068     0.0038       1.76
+  19    0    0.3498      0.0220     0.0177       1.74
+  20    0    0.6277      0.0147     0.0106       1.71
+  21    0    0.0000
+  22    0    0.0000
+  23    0    0.9293      0.0000     0.0031       1.06
+  24    1    0.3501      0.0346     0.0202       1.71
+  25    1    0.2733      0.0232     0.0066       1.93
+  26    1    0.3095      0.0167     0.0051       1.83
+  27    1    0.0834      0.0310     0.0132       1.75
+  28    1    0.6631      0.0291     0.0132       1.81
+  29    1    0.2816      0.0193     0.0073       2.08
+  30    1    0.8159      0.0131     0.0035       1.88
+  31    1    0.6140      0.0219     0.0122       1.95
+  32    1    0.4446      0.0265     0.0185       1.86
+  33    1    0.5652      0.0170     0.0109       1.78
+  34    1    0.7315      0.0168     0.0066       1.85
+  35    1    0.4775      0.0337     0.0175       1.70
+  36    1    0.6998      0.0115     0.0083       1.87
+  37    1    0.2699      0.0294     0.0102       1.76
+  38    1    0.2112      0.0187     0.0044       1.73
+  39    1    0.4425      0.0170     0.0089       1.79
+  40    1    0.6494      0.0153     0.0057       1.84
+  41    1    0.3150      0.0246     0.0095       1.78
+  42    1    0.4647      0.0114     0.0053       1.79
+  43    1    0.0000
+  44    1    0.6987      0.0119     0.0097       1.87
+  45    1    0.9248      0.0000     0.0096       0.97
+slots with >50% of present frames within 1 m of a touchline or beyond: []
+present slots per graded frame: n=158857 q5=14 q25=21 q50=22 q75=22 q95=22
+present slots per frame excluding flagged: n=158857 q5=14 q25=21 q50=22 q75=22 q95=22
+same-team slot pairs closer than 0.5 m (both present), share of frames where both present:
+  pairs tested 423; pairs with share>0.01: 0; share>0.05: 0; share>0.20: 0
+  slots  0,11: both present   1886 frames, within 0.5 m on 0.008
+  slots  8,12: both present  11407 frames, within 0.5 m on 0.006
+  slots  4, 9: both present   6391 frames, within 0.5 m on 0.005
+  slots 12,17: both present   5685 frames, within 0.5 m on 0.005
+  slots 24,27: both present   3737 frames, within 0.5 m on 0.005
+  slots 39,44: both present  44755 frames, within 0.5 m on 0.004
+  slots  5,12: both present  14673 frames, within 0.5 m on 0.004
+  slots  9,11: both present  22565 frames, within 0.5 m on 0.004
+
+====================================================================================================
+Q5 Which way does each team attack? mean x (normalised, 0 = low-x end) in the first minute
+====================================================================================================
+1st half home  mean x 0.305 (all frames of first minute; ball visible 1.00)
+1st half away  mean x 0.371 (all frames of first minute; ball visible 1.00)
+1st half kickoff frame itself: home mean x 0.382, away mean x 0.517
+2nd half home  mean x 0.692 (all frames of first minute; ball visible 1.00)
+2nd half away  mean x 0.611 (all frames of first minute; ball visible 1.00)
+2nd half kickoff frame itself: home mean x 0.624, away mean x 0.444
+1st half home keeper (slot of lowest mean speed with presence>0.5): mean x 0.102
+1st half away keeper (slot of lowest mean speed with presence>0.5): mean x 0.847
+2nd half home keeper (slot of lowest mean speed with presence>0.5): mean x 0.885
+2nd half away keeper (slot of lowest mean speed with presence>0.5): mean x 0.145
+
+====================================================================================================
+Q6 Tag coverage and DEFENDING mirrors
+====================================================================================================
+attacking transition             tags  24 with team  24 total frames    9291 (mean 15.5s)
+ball in final third              tags  93 with team  93 total frames   70012 (mean 30.1s)
+ball in the box                  tags  72 with team  72 total frames   32582 (mean 18.1s)
+build up                         tags  22 with team  22 total frames   11011 (mean 20.0s)
+creating chances                 tags  30 with team  28 total frames   22500 (mean 30.0s)
+defending in attacking third     tags  22 with team  22 total frames   11011 (mean 20.0s)
+defending in defensive third     tags  30 with team  28 total frames   22500 (mean 30.0s)
+defending in middle third        tags  66 with team  66 total frames   31118 (mean 18.9s)
+defensive transition             tags  24 with team  24 total frames    9291 (mean 15.5s)
+goals                            tags   4 with team   4 total frames   16503 (mean 165.0s)
+long ball                        tags  29 with team  29 total frames    9533 (mean 13.1s)
+players in the box               tags  97 with team  97 total frames   86101 (mean 35.5s)
+progression                      tags  66 with team  66 total frames   31118 (mean 18.9s)
+set pieces                       tags  59 with team  27 total frames   47125 (mean 31.9s)
+share of graded frames under a team-tagged attacking phase: any 0.681; home 0.461; away 0.312; both teams at once 0.0920
+share of graded frames under a team-tagged DEFENDING phase: any 0.401
+share of attacking-covered graded frames where the ball is visible: 0.689 (graded overall 0.593)
+DEFENDING tags 142 (without team 2); best IoU with an attacking tag of the OTHER team: n=140 q5=1.00 q25=1.00 q50=1.00 q75=1.00 q95=1.00
+  share with IoU>0.8 vs other team: 1.000; vs paired code of other team: 1.000; vs SAME team 0.014
+  share with exact interval match to any attacking tag of the other team: 1.000
+
+====================================================================================================
+Q7 Per-code tag reliability: agreement with local carry evidence and the v0 decoder
+====================================================================================================
+strong-carry frames (>=10 carry frames of one team and none of the other within +-1 s): 0.249 of graded; decoder (no tag channels) agrees with strong carry team on alive strong frames: 0.969; decoder is D on strong frames: 0.180
+code                           tags | strong-carry frames agree (n, share, log-odds) | tags with >=25 strong frames: majority agrees (n, share, Wilson95, log-odds) | decoder alive frames agree (n, share) | tag majority vs decoder (n, share)
+ALL ATTACK CODES                431 |   72600 0.731 +1.00 | 380 0.734 [0.69,0.78] +1.01 |  151641 0.764 | 372 0.798
+attacking transition             24 |    3470 0.776 +1.24 |  24 0.833 [0.64,0.93] +1.44 |    8262 0.712 |  22 0.864
+ball in final third              93 |   18967 0.726 +0.97 |  84 0.738 [0.64,0.82] +1.01 |   37550 0.779 |  81 0.852
+ball in the box                  72 |    8115 0.648 +0.61 |  62 0.677 [0.55,0.78] +0.72 |   17968 0.763 |  58 0.793
+build up                         22 |    5220 0.908 +2.29 |  22 0.909 [0.72,0.97] +1.95 |    9123 0.874 |  22 0.864
+creating chances                 28 |    4298 0.630 +0.53 |  26 0.654 [0.46,0.81] +0.59 |    9526 0.787 |  24 0.833
+defending in attacking third     22 |    5220 0.092 -2.29 |  22 0.091 [0.03,0.28] -1.95 |    9123 0.126 |  22 0.136
+defending in defensive third     28 |    4298 0.370 -0.53 |  26 0.346 [0.19,0.54] -0.59 |    9526 0.213 |  24 0.167
+defending in middle third        66 |   12921 0.107 -2.12 |  64 0.078 [0.03,0.17] -2.30 |   24820 0.091 |  63 0.079
+defensive transition             24 |    3470 0.224 -1.24 |  24 0.167 [0.07,0.36] -1.44 |    8262 0.288 |  22 0.136
+long ball                        29 |    2058 0.765 +1.18 |  19 0.737 [0.51,0.88] +0.92 |    7090 0.623 |  23 0.609
+players in the box               97 |   17551 0.616 +0.47 |  79 0.570 [0.46,0.67] +0.27 |   37302 0.660 |  79 0.658
+progression                      66 |   12921 0.893 +2.12 |  64 0.922 [0.83,0.97] +2.30 |   24820 0.909 |  63 0.921
+log-odds shrunk to the pooled rate with 10 pseudo-tags (tag-level majority agreement; floor 0):
+  attacking transition     tags  24 raw p 0.833 shrunk p 0.804 -> w 1.41
+  ball in final third      tags  84 raw p 0.738 shrunk p 0.738 -> w 1.03
+  ball in the box          tags  62 raw p 0.677 shrunk p 0.685 -> w 0.78
+  build up                 tags  22 raw p 0.909 shrunk p 0.854 -> w 1.77
+  creating chances         tags  26 raw p 0.654 shrunk p 0.676 -> w 0.74
+  long ball                tags  19 raw p 0.737 shrunk p 0.736 -> w 1.02
+  players in the box       tags  79 raw p 0.570 shrunk p 0.588 -> w 0.36
+  progression              tags  64 raw p 0.922 shrunk p 0.897 -> w 2.16
+(DEFENDING rows use the tag's own Team as the side; a share below 0.5 means Team names the attacker.)
+agreement by third of the tag (tags >=4 s): first 0.828 middle 0.765 last 0.561 (n tags with data 146)
+
+====================================================================================================
+Q8 Restart timing inside the SET PIECES windows
+====================================================================================================
+windows 59 (58 fully inside graded periods); window length s: n=59 q5=5.0 q25=35.0 q50=35.0 q75=35.0 q95=35.0
+windows by type: corner kick 12, free kick 5, goal kick 10, kick off (after goal) 4, kick off (start) 2, throw-in 26
+candidate 'touch event': windows with candidate 41 of 59 (0.69); offset from window start s: n=41 q5=5.2 q25=9.3 q50=14.6 q75=22.0 q95=33.8
+     corner kick            with candidate  7/12 offset s: n=7 q25=7.4 q50=10.4 q75=18.7
+     free kick              with candidate  2/5  offset s: n=2 q25=13.1 q50=14.0 q75=14.9
+     goal kick              with candidate 10/10 offset s: n=10 q25=7.8 q50=13.6 q75=26.0
+     kick off (after goal)  with candidate  0/4  offset s: n=0
+     kick off (start)       with candidate  0/2  offset s: n=0
+     throw-in               with candidate 22/26 offset s: n=22 q25=10.8 q50=16.2 q75=23.3
+candidate 'first carry frame': windows with candidate 55 of 59 (0.93); offset from window start s: n=55 q5=0.0 q25=3.5 q50=7.2 q75=11.0 q95=21.6
+     corner kick            with candidate 12/12 offset s: n=12 q25=8.4 q50=10.8 q75=12.8
+     free kick              with candidate  4/5  offset s: n=4 q25=5.9 q50=9.1 q75=10.8
+     goal kick              with candidate 10/10 offset s: n=10 q25=0.0 q50=0.6 q75=2.9
+     kick off (after goal)  with candidate  2/4  offset s: n=2 q25=4.5 q50=4.6 q75=4.8
+     kick off (start)       with candidate  1/2  offset s: n=1 q25=4.6 q50=4.6 q75=4.6
+     throw-in               with candidate 26/26 offset s: n=26 q25=4.7 q50=6.7 q75=10.3
+candidate 'ball reappears': windows with candidate 46 of 59 (0.78); offset from window start s: n=46 q5=2.2 q25=4.5 q50=6.4 q75=9.9 q95=24.1
+     corner kick            with candidate 12/12 offset s: n=12 q25=5.9 q50=6.8 q75=8.1
+     free kick              with candidate  4/5  offset s: n=4 q25=5.5 q50=8.9 q75=12.2
+     goal kick              with candidate  6/10 offset s: n=6 q25=8.6 q50=12.7 q75=23.2
+     kick off (after goal)  with candidate  3/4  offset s: n=3 q25=3.1 q50=3.3 q75=3.3
+     kick off (start)       with candidate  1/2  offset s: n=1 q25=3.6 q50=3.6 q75=3.6
+     throw-in               with candidate 20/26 offset s: n=20 q25=4.4 q50=6.3 q75=7.8
+candidate 'ball speed >2 m/s after still/hidden': windows with candidate 47 of 59 (0.80); offset from window start s: n=47 q5=2.9 q25=4.6 q50=6.4 q75=8.7 q95=18.5
+     corner kick            with candidate 12/12 offset s: n=12 q25=6.0 q50=6.8 q75=8.1
+     free kick              with candidate  4/5  offset s: n=4 q25=5.6 q50=9.0 q75=12.2
+     goal kick              with candidate  6/10 offset s: n=6 q25=5.8 q50=7.3 q75=9.7
+     kick off (after goal)  with candidate  3/4  offset s: n=3 q25=3.2 q50=3.4 q75=3.4
+     kick off (start)       with candidate  1/2  offset s: n=1 q25=3.7 q50=3.7 q75=3.7
+     throw-in               with candidate 21/26 offset s: n=21 q25=4.6 q50=6.8 q75=7.3
+touch candidate distance to window end (s): n=41 q5=1.2 q25=13.0 q50=20.4 q75=25.7 q95=29.8
+windows whose ball is hidden for the whole window: 0.02; hidden share of window frames: 0.34
+D share of no-tag-channel decoder inside windows before first touch event / after: 0.59 / 0.29
+decoder D share (no tag channels) before / after candidate 'touch event': 0.59 / 0.29 over 41 windows
+decoder D share (no tag channels) before / after candidate 'first carry frame': 0.87 / 0.33 over 49 windows
+decoder D share (no tag channels) before / after candidate 'ball reappears': 0.91 / 0.39 over 46 windows
+decoder D share (no tag channels) before / after candidate 'ball speed >2 m/s after still/hidden': 0.94 / 0.40 over 47 windows
+
+====================================================================================================
+Q9 Is the ball speed usable?
+====================================================================================================
+centred ball speed (m/s), graded visible frames: n=93699 q1=0.08 q5=0.50 q25=2.38 q50=5.09 q75=9.53 q95=17.34 q99=24.64 q99.9=54.62
+share of visible graded frames with NaN centred velocity (touches a blackout): 0.006
+share above 35 m/s 0.00337, above 45 m/s 0.00171
+3-frame velocity change (m/s) on visible frames: n=93427 q50=0.68 q90=2.18 q99=4.57 q99.9=18.57
+share of visible frames with 3-frame velocity change >= 4 m/s: 0.0141
+still-ball runs (speed<0.5 for >=2.0 s): count 22 ; duration s: n=22 q5=2.1 q25=2.9 q50=3.6 q75=5.1 q95=8.8; share of graded frames 0.016
+   still threshold 0.2 m/s: runs 14 frames 0.008 of graded
+   still threshold 0.5 m/s: runs 22 frames 0.016 of graded
+   still threshold 1.0 m/s: runs 46 frames 0.031 of graded
+   still threshold 1.5 m/s: runs 71 frames 0.048 of graded
+ATD ball group carries a third field on 1.000 of every 50th record

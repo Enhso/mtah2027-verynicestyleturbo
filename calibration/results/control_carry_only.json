@@ -1,0 +1,20 @@
+{
+ "J": [
+  0.4839021282734224,
+  0.7362795616549889
+ ],
+ "params": {
+  "carry_dv": 8.0,
+  "carry_margin": 0.5,
+  "carry_radius": 3.0,
+  "touch_w": 0.0
+ },
+ "per_key": {
+  "metrica_game1|atd": 0.5243,
+  "metrica_game1|atd+mask": 0.4225,
+  "metrica_game2|atd": 0.5784,
+  "metrica_game2|atd+mask": 0.4439,
+  "metrica_game3|atd": 0.5382,
+  "metrica_game3|atd+mask": 0.3961
+ }
+}

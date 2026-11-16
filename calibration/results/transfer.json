@@ -1,0 +1,56 @@
+{
+ "carry_dv": {
+  "feature": "ball_minus_player_v",
+  "quantile": 0.726,
+  "transferred": 7.67,
+  "tuned": 8.0
+ },
+ "carry_margin": {
+  "feature": "margin",
+  "quantile": 0.1053,
+  "transferred": 0.61,
+  "tuned": 0.5
+ },
+ "carry_radius": {
+  "feature": "near_dist",
+  "quantile": 0.6896,
+  "transferred": 3.37,
+  "tuned": 3.0
+ },
+ "low_speed": {
+  "feature": "median_speed",
+  "quantile": 0.3237,
+  "transferred": 1.39,
+  "tuned": 1.5
+ },
+ "move_speed": {
+  "feature": "ball_speed",
+  "quantile": 0.6467,
+  "transferred": 7.3,
+  "tuned": 8.0
+ },
+ "still_speed": {
+  "feature": "still_speed",
+  "quantile": 0.0226,
+  "transferred": 0.18,
+  "tuned": 0.5
+ },
+ "touch_angle": {
+  "feature": "angle",
+  "quantile": 0.9771,
+  "transferred": 28.93,
+  "tuned": 35.0
+ },
+ "touch_dv": {
+  "feature": "v_change",
+  "quantile": 0.756,
+  "transferred": 1.43,
+  "tuned": 1.5
+ },
+ "touch_radius": {
+  "feature": "near_dist",
+  "quantile": 0.6309,
+  "transferred": 2.8,
+  "tuned": 2.5
+ }
+}

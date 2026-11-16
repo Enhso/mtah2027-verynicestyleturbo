@@ -1,0 +1,13 @@
+{
+ "all_three": 0.5231146139219855,
+ "held_out": 0.5231146139219855,
+ "params": {
+  "carry_dv": 8.0,
+  "carry_margin": 0.5,
+  "carry_radius": 3.0,
+  "low_w": 0.05,
+  "min_dead_frames": 75,
+  "restart_at_end": true,
+  "touch_dv": 1.5
+ }
+}
