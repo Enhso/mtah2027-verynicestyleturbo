@@ -34,11 +34,10 @@ Run from the worktree root: `PY=.venv/bin/python`,
   shape.
 
 ## Finding: the GOALS tag does not start at the goal
-BAR-ATH has 4 GOALS tags (71 to 251 s) and 4 kick-off-after-goal windows of 5 s. Each tag ends 1.0 s
-after its kick-off window starts. In 3 of 4 tags the ball is hidden at the start, then visible for
-a 19 to 22 s run starting exactly 10.0 s after the tag start, and a free kick, corner or throw-in
-window starts 3 to 10 s after the tag start (the fourth tag has a free-kick window overlapping its
-first 31 s). So a goal tag opens with the set piece of the scoring sequence and about 20 s of live play,
+BAR-ATH has 4 GOALS tags, each one to a few minutes long, and 4 short kick-off-after-goal windows;
+each GOALS tag ends just after its kick-off window starts. In 3 of 4 tags a free kick, corner or
+throw-in window starts a few seconds after the tag start and is followed by about 20 s of visible
+live play (the fourth tag overlaps a free-kick window from its start). So a goal tag opens with the set piece of the scoring sequence and about 20 s of live play,
 then the goal, then the dead time to the kick-off. D from the tag start therefore forces D over
 live play and over a real restart in 3 of 4 goals.
 

@@ -1,0 +1,133 @@
+diff --git a/calibration/formation_train.py b/calibration/formation_train.py
+index b140275..92c6aec 100644
+--- a/calibration/formation_train.py
++++ b/calibration/formation_train.py
+@@ -71,7 +71,7 @@ def train(names):
+ 
+ 
+ def accuracy(coef, X, y):
+-    z = X @ coef
++    z = X[:, :len(coef)] @ coef   # a model may use only the first columns (v2: 5)
+     decided = z != 0
+     return float(((z > 0) == (y == 1))[decided].mean()) if decided.any() else float("nan"), int(decided.sum())
+ 
+@@ -117,16 +117,20 @@ def heldout_accuracy(coef, n):
+ 
+ 
+ if __name__ == "__main__":
++    # train [path] writes the model (default possession/formation_model.json); check also prints the
++    # held-out accuracy of the shipped model for comparison.
+     mode = sys.argv[1] if len(sys.argv) > 1 else "train"
+     coef, scale, n = train(c.DFL)
+     if mode == "check":
+-        check()
+         heldout_accuracy(coef, n)
++        print("shipped model:")
++        heldout_accuracy(np.asarray(Params().formation_coef), n)
+     else:
+-        with open(MODEL_PATH, "w") as fh:
+-            json.dump({"features": list(SHAPE_NAMES), "coef": [round(float(v), 6) for v in coef],
++        names = SHAPE_NAMES[:len(coef)]
++        with open(sys.argv[2] if len(sys.argv) > 2 else MODEL_PATH, "w") as fh:
++            json.dump({"features": list(names), "coef": [round(float(v), 6) for v in coef],
+                        "scale": [round(float(v), 6) for v in scale], "n_train_rows": n,
+                        "n_train_rows_with_swap": 2 * n, "matches": c.DFL,
+                        "variant": "atd", "stride": STRIDE, "iters": ITERS, "ridge": RIDGE},
+                       fh, indent=1)
+-        print("coef", dict(zip(SHAPE_NAMES, np.round(coef, 4).tolist())), "rows", n)
++        print("coef", dict(zip(names, np.round(coef, 4).tolist())), "rows", n)
+diff --git a/possession/evidence.py b/possession/evidence.py
+index a501bd0..96e2fd2 100644
+--- a/possession/evidence.py
++++ b/possession/evidence.py
+@@ -197,7 +197,8 @@ def channels(f, tags, params):
+ 
+     if params.formation_w_vis > 0 or params.formation_w_blk > 0:
+         # Only the disfavoured team pays, so the best alive score against D does not move.
+-        z = f.shape @ np.asarray(params.formation_coef)
++        coef = np.asarray(params.formation_coef)   # the first len(coef) shape columns
++        z = f.shape[:, :len(coef)] @ coef
+         w = np.where(f.visible, params.formation_w_vis, params.formation_w_blk)
+         out["formation"][:, A] -= w * np.maximum(z, 0.0)
+         out["formation"][:, H] -= w * np.maximum(-z, 0.0)
+diff --git a/possession/features.py b/possession/features.py
+index 4859bb4..55f1093 100644
+--- a/possession/features.py
++++ b/possession/features.py
+@@ -99,17 +99,42 @@ class Features:
+     shape: np.ndarray            # (n,len(SHAPE_NAMES)) home-minus-away team shape, see team_shape
+ 
+ 
+-SHAPE_NAMES = ("advance", "forward_speed", "length", "width", "in_opp_half")
++BASE_NAMES = ("advance", "forward_speed", "length", "width", "in_opp_half", "space", "line")
++ROLL_S = (1.0, 3.0)
++SHAPE_NAMES = BASE_NAMES + tuple("{}_{:g}s".format(nm, r) for r in ROLL_S for nm in BASE_NAMES)
++_CHUNK = 20000   # frames per block of the player-to-opponent distance matrix
++
++
++def _space(xc, yc, c, o):
++    """(n,) mean over team c's players of the distance to the nearest player of team o."""
++    out = np.full(len(xc), np.nan)
++    if not (len(c) and len(o)):
++        return out
++    for a in range(0, len(xc), _CHUNK):
++        b = a + _CHUNK
++        d = np.hypot(xc[a:b, c, None] - xc[a:b, None, o], yc[a:b, c, None] - yc[a:b, None, o])
++        out[a:b] = np.nanmean(np.nanmin(d, axis=2), axis=1)
++    return out
++
+ 
++def _rolling(a, k):
++    """Centred moving mean of each column of a over k frames, shorter at the ends."""
++    box = np.ones(max(1, min(k, len(a))))   # "same" returns the longer of the two lengths
++    den = np.convolve(np.ones(len(a)), box, mode="same")
++    return np.stack([np.convolve(col, box, mode="same") / den for col in a.T], axis=1)
+ 
+-def team_shape(players, pv, team, pitch):
+-    """(n,5) home minus away of per-team shape features, each in that team's own attack frame.
++
++def team_shape(players, pv, team, pitch, fps):
++    """(n,len(SHAPE_NAMES)) home minus away of per-team shape features, each in that team's own
++    attack frame, then their centred rolling means over ROLL_S.
+ 
+     The attack direction is label-free, per period: home attacks towards the away team's side
+     (sign of the median over frames of away minus home mean x). Per team: mean x, mean forward
+-    velocity, std x, std y, share of players in the opponent half. Coordinates are centred and the
+-    sign is applied before any reduction, so reflecting both axes gives bit-identical features and
+-    swapping the teams negates them exactly. Rows where a team has fewer than 2 players are 0.
++    velocity, std x, std y, share of players in the opponent half, mean distance to the nearest
++    opponent, x of the second-deepest player (the back line when the keeper is deepest).
++    Coordinates are centred and the sign is applied before any reduction, so reflecting both axes
++    gives bit-identical features and swapping the teams negates them exactly. Rows where a team
++    has fewer than 2 players are 0 before the rolling means.
+     """
+     length, width = pitch
+     xc, yc = players[:, :, 0] - length / 2.0, players[:, :, 1] - width / 2.0
+@@ -121,16 +146,18 @@ def team_shape(players, pv, team, pitch):
+                                  - np.nanmean(xc[:, cols[0]], axis=1)))
+         s = 0.0 if not np.isfinite(s) else float(s)
+         per = []
+-        for side, c in zip((HOME, AWAY), cols):
++        for side, c, o in ((HOME, cols[0], cols[1]), (AWAY, cols[1], cols[0])):
+             d = s if side == HOME else -s
+             xa = d * xc[:, c]
+             per.append(np.stack([
+                 np.nanmean(xa, axis=1), np.nanmean(d * pv[:, c, 0], axis=1),
+                 np.nanstd(xa, axis=1), np.nanstd(yc[:, c], axis=1),
+-                (xa > 0).sum(axis=1) / present[:, c].sum(axis=1)], axis=1))
++                (xa > 0).sum(axis=1) / present[:, c].sum(axis=1),
++                _space(xc, yc, c, o),
++                np.sort(xa, axis=1)[:, 1] if len(c) > 1 else np.full(len(xa), np.nan)], axis=1))
+     out = np.nan_to_num(per[0] - per[1])
+     out[(present[:, cols[0]].sum(axis=1) < 2) | (present[:, cols[1]].sum(axis=1) < 2)] = 0.0
+-    return out
++    return np.concatenate([out] + [_rolling(out, int(round(r * fps))) for r in ROLL_S], axis=1)
+ 
+ 
+ def compute(ball, players, speed, team, pitch, fps, params):
+@@ -197,4 +224,4 @@ def compute(ball, players, speed, team, pitch, fps, params):
+         v_after=v_after, ball_v=ball_v, still_speed=still, line_dist=line_dist,
+         out_normal=normals[side], offpitch=offpitch, near_team=near_team, near_dist=near_dist,
+         opp_dist=opp_dist, near_v=near_v, median_speed=median_speed,
+-        shape=team_shape(players, pv, team, pitch))
++        shape=team_shape(players, pv, team, pitch, fps))

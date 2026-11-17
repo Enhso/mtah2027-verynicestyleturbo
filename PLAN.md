@@ -62,7 +62,7 @@ against 59.3% for the graded match `[measured]`.
 The 17 public possessions last 0.8, 1.3, 2.8, 3.2, 3.5, 3.6, 6.6, 7.4, 7.6, 8.1, 11.8, 16.0,
 20.0, 28.6, 35.7, 41.6 and 42.4 s. Six are under 4 s. In 5 of the 17 the nearest tracked player
 belongs to the other team on more than half of the frames. The 4 public stoppages last 5.5, 14.5,
-18.3 and 20.4 s. The ball is tracked on 7%, 100%, 20% and 100% of their frames, so "no ball" and
+18.3 and 20.4 s. Two of them have a fully tracked ball and two are mostly untracked, so "no ball" and
 "dead ball" are different things in both directions. Consequences: evidence must come from
 control events, a minimum-duration filter on possessions would delete real ones, and stoppages
 need their own detector.

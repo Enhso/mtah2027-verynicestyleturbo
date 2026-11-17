@@ -199,3 +199,48 @@ fixture has players present and players are that channel's input (PROPERTIES.md 
 Commands: `python -m calibration.formation_train [train|check]` (model JSON and accuracies, about
 1 min), `python -m calibration.formation_tune` (folds, grid, held-out table, about 5 min; writes
 calibration/results/formation_loo.json and rows in notes/calibration-log.tsv).
+
+## 7. Run 3: classifier upgrade (specified by the lead before running; third look at the same games)
+Start: `submission` d779de0, v2 frozen (sha 1603cfd4...e6e4, w_vis 0.02, w_blk 0.1).
+Features chosen by reasoning before any run, not by trying:
+- `space`: mean over a team's players of the distance to the nearest opponent, home minus away.
+  Defenders mark goal-side of attackers, so each defender is near some attacker while attackers
+  spread and some stay free: the team on the ball has more space.
+- `line`: x of the second-deepest player in the team's attack frame (the deepest outfield player
+  when the keeper is deepest). The team on the ball pushes its back line up; the mean `advance`
+  mixes this with the forwards, who drop less when defending.
+- Not added: compactness, which `length` and `width` already measure.
+- Temporal context: centred rolling means over 1 s and 3 s of all 7 per-frame features, per period,
+  on every frame alike (players only). 21 columns, ordered base 7, then 1 s, then 3 s.
+Training as v2: DFL only, atd, every 5th alive frame, team-swap augmented, no intercept, IRLS.
+Stage 1 gate: held-out frame accuracy on each Metrica game must rise by at least 0.01 over the v2
+classifier on both alive frames (atd) and alive blackout frames (atd+mask), all 3 games. Else stop.
+Stage 2: per fold, weights re-chosen on w_vis {0, 0.01, 0.02} x w_blk {0.05, 0.1, 0.2} (J over the
+other two games), scored on the held-out game. Adopt only if all six cells gain over v2 and the
+mean held-out gain is at least 0.01. No cost descent. Not adopted: nothing committed that changes
+the v2 sha.
+
+### Run 3 result: Stage 1 gate FAILS, v2 kept (code not committed)
+`python -m calibration.formation_train check` with the 21-column model (DFL only, 110,627 rows),
+against the shipped v2 model (5 columns), held-out frame accuracy:
+
+| Metrica game | alive (atd) v2 -> run 3 | gain | alive blackout (atd+mask) v2 -> run 3 | gain |
+|---|---|---|---|---|
+| game 1 | 0.801 -> 0.812 | +0.011 | 0.725 -> 0.727 | +0.002 |
+| game 2 | 0.815 -> 0.826 | +0.011 | 0.749 -> 0.758 | +0.009 |
+| game 3 | 0.818 -> 0.820 | +0.002 | 0.744 -> 0.739 | -0.005 |
+
+The gate needs +0.01 on all six; two pass. Stage 2 was not run. Frame counts differ slightly
+between models (accuracy counts frames with nonzero log-odds; the rolling means leave fewer exact
+zeros), which does not change the verdict. The code is kept as `notes/formation-run3.patch`
+(applies on d779de0; with the v2 coefficients it gave the v2 sha unchanged, since the channel uses
+only the first len(coef) columns), not committed: it slows `python -m possession` from about 2 s
+to about 7 s (the player-to-opponent distance matrix) for no gain.
+Blackout frames, the ones the channel is meant for, gained least: rolling means of a shape
+that is already slow add little, and space and line overlap with advance and length.
+
+Found on the way (reported to the lead, not changed): frozen v2 fails P8 on one synthetic case,
+segments [(A,300),(H,300)], seed 0: spellF1 0.900 with the channel, 1.000 with both weights at 0,
+on a clean export of HEAD d779de0. The synthetic players do not change shape with possession, so
+the classifier gives a fixed wrong answer that w_vis applies on every visible frame. Earlier test
+runs passed because Hypothesis is not derandomized here and had not drawn this case.
