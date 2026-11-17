@@ -9,7 +9,7 @@ import os
 
 import numpy as np
 import pytest
-from hypothesis import HealthCheck, assume, given, settings, strategies as st
+from hypothesis import HealthCheck, assume, example, given, settings, strategies as st
 
 import synth
 from baseline import write_submission
@@ -200,6 +200,7 @@ def test_p7_no_velocity_across_blackout(visible, seed):
 # --- 8: recovery -------------------------------------------------------------------------------
 
 @given(segment_lists(), st.booleans(), st.integers(0, 3))
+@example([(1, 300), (0, 300)], True, 0)   # team shape that ignored possession failed this at v2
 @SLOW
 def test_p8_synthetic_recovery(segments, dead_visible, seed):
     m, truth = synth.make_match(segments, dead_visible, seed)

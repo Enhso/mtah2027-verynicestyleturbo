@@ -1,8 +1,10 @@
 """A synthetic match built from a known label sequence, on a dyadic pitch.
 
 Coordinates sit on a 1/8 m grid and the pitch is 104 x 68 m, so reflecting both axes is exact in
-float32 and float64. Home players stay in x in [4, 48], away players in x in [56, 100], so the
-holder's team is always the only one near the ball. An alive segment is a chain of dribbles and
+float32 and float64. The away team is the point mirror of the home team, so team shape alone favours
+neither. The team on the ball pushes SHIFT m up and spreads WIDEN wider, the other drops back and
+narrows (ramped over 1 s), so home players stay in x in [1, 51], away players in x in [53, 103], and
+the two teams are always at least 8 m apart in x: the holder's team is the only one near the ball. An alive segment is a chain of dribbles and
 passes ending in a flight to the next segment's first holder (a turnover) or to a spot outside the
 touchline (a stoppage). Every synthetic channel input is a stand-in for what the real channels read.
 """
@@ -17,6 +19,7 @@ K = 22
 HOME, AWAY = 0, 1
 H, A, D = 0, 1, 2
 MIN_ALIVE, MIN_DEAD = 300, 150      # frames; 12 s and 6 s
+SHIFT, WIDEN = 3.0, 0.1             # m forward and relative width change of the team on the ball
 
 
 def _grid(a):
@@ -26,17 +29,32 @@ def _grid(a):
 class _Players:
     def __init__(self, rng):
         self.team = np.array([HOME] * 11 + [AWAY] * 11, dtype=np.int8)
-        x = np.where(self.team == HOME, rng.uniform(8, 44, K), rng.uniform(60, 96, K))
-        self.base = np.stack([x, rng.uniform(8, 60, K)], axis=1)
-        self.amp = rng.uniform(1.0, 4.0, K)
-        self.period = rng.uniform(300, 600, K)
-        self.phase = rng.uniform(0, 2 * np.pi, (K, 2))
+        hx, hy = rng.uniform(8, 44, 11), rng.uniform(8, 60, 11)
+        self.base = np.stack([np.concatenate([hx, PITCH[0] - hx]),
+                              np.concatenate([hy, PITCH[1] - hy])], axis=1)
+        self.amp = np.tile(rng.uniform(1.0, 4.0, 11), 2)
+        self.period = np.tile(rng.uniform(300, 600, 11), 2)
+        self.phase = np.tile(rng.uniform(0, 2 * np.pi, (11, 2)), (2, 1))
+        self.sign = np.where(self.team == HOME, 1.0, -1.0)   # home attacks +x; away is mirrored
+        self.lead = None    # (2, n) per team: +1 on the ball, -1 defending, 0 dead, ramped
+
+    def follow(self, truth):
+        """Make each team's shape follow possession, given the frame labels."""
+        ramp = np.ones(FPS) / FPS
+        own = [np.convolve((truth == side).astype(float), ramp, mode="same") for side in (H, A)]
+        self.lead = np.stack([own[0] - own[1], own[1] - own[0]])
 
     def at(self, i, t):
         """Position of player i at frame(s) t, shape (len(t), 2)."""
-        w = 2 * np.pi * np.asarray(t, float) / self.period[i]
-        return self.base[i] + self.amp[i] * np.stack(
+        t = np.asarray(t)
+        w = 2 * np.pi * t.astype(float) / self.period[i]
+        pos = self.base[i] + self.sign[i] * self.amp[i] * np.stack(
             [np.sin(w + self.phase[i, 0]), np.cos(w + self.phase[i, 1])], axis=-1)
+        if self.lead is not None:
+            lead = self.lead[self.team[i]][t]
+            pos = pos + np.stack([SHIFT * lead * self.sign[i],
+                                  WIDEN * lead * (pos[..., 1] - PITCH[1] / 2)], axis=-1)
+        return pos
 
     def all_at(self, t):
         return np.stack([self.at(i, t) for i in range(K)], axis=1)
@@ -53,12 +71,16 @@ def make_match(segments, dead_visible, seed, tags=None, name="SYNTH"):
     players = _Players(rng)
     n = sum(f for _, f in segments)
     ball = np.full((n, 2), np.nan)
-    truth = np.zeros(n, dtype=np.int8)
+    truth = np.repeat([lab for lab, _ in segments], [f for _, f in segments]).astype(np.int8)
+    players.follow(truth)
     offset = np.array([0.5, 0.0])
 
     starts = np.cumsum([0] + [f for _, f in segments])
     first_holder = [(_holder(rng, players, lab) if lab != D else -1) for lab, _ in segments]
-    spot_x = {i: float(rng.uniform(20, 80)) for i, (lab, _) in enumerate(segments) if lab == D}
+    # The ball goes out in the last holder's half, so its flight never passes the other team.
+    spot_x = {i: float(rng.uniform(20, 80) if i == 0 else
+                       rng.uniform(8, 44) if segments[i - 1][0] == H else rng.uniform(60, 96))
+              for i, (lab, _) in enumerate(segments) if lab == D}
 
     for i, (lab, frames) in enumerate(segments):
         t0, t1 = int(starts[i]), int(starts[i + 1])
