@@ -9,7 +9,6 @@ sys.path.insert(0, ROOT)
 from possession import match as mt  # noqa: E402
 
 CACHE = mt.CACHE_DIR
-SCR = CACHE
 PITCH = np.array([105.3, 68.0], np.float32)
 FLIPS = {"id": (1, 1), "fx": (-1, 1), "fy": (1, -1), "fxy": (-1, -1)}
 
@@ -20,7 +19,7 @@ def load_tactical():
 
 
 def load_broadcast():
-    z = np.load(os.path.join(SCR, "bc.npz"))
+    z = np.load(os.path.join(CACHE, "bc.npz"))
     return z["players"], z["team"], z["ball"]
 
 

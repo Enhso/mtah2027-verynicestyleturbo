@@ -17,6 +17,9 @@ ATTACK_CODES = frozenset([
     "build up", "progression", "creating chances", "attacking transition", "long ball",
     "ball in final third", "ball in the box", "players in the box"])
 SET_PIECE_CODE = "set pieces"
+GOAL_CODE = "goals"
+# Added by localize_tags next to a "set pieces" tag whose Type is a kick-off after a goal.
+KICKOFF_AFTER_GOAL_CODE = "kick off after goal"
 
 
 def localize_tags(tags, config, start, stop):
@@ -28,8 +31,10 @@ def localize_tags(tags, config, start, stop):
     for tag in tags:
         a, b = max(tag["start_frame"], start), min(tag["end_frame"], stop)
         if a < b:
-            out.append(((tag["code"] or "").strip().lower(), a - start, b - start,
-                        config.tag_side(tag["tags"].get("Team"))))
+            code = (tag["code"] or "").strip().lower()
+            out.append((code, a - start, b - start, config.tag_side(tag["tags"].get("Team"))))
+            if code == SET_PIECE_CODE and "after goal" in (tag["tags"].get("Type") or "").lower():
+                out.append((KICKOFF_AFTER_GOAL_CODE, a - start, b - start, None))
     return out
 
 
@@ -82,12 +87,28 @@ def still_ball(f, params):
         return keep_long(f.still_speed < params.still_speed, int(round(params.still_s * f.fps)))
 
 
+def launch_frame(f, still, params, a, b):
+    """First frame of [a, b) where the ball is struck, or None: centred speed above
+    setpiece_launch_speed after a hidden or still frame inside the window, else the first visible
+    frame after a hidden one (notes/labelfree-answers.md, proposal 2)."""
+    dead = ~f.visible[a:b] | still[a:b]
+    after_dead = np.concatenate(([False], np.maximum.accumulate(dead)[:-1]))
+    with np.errstate(invalid="ignore"):
+        fast = np.linalg.norm(f.ball_v[a:b], axis=1) > params.setpiece_launch_speed
+    hit = np.flatnonzero(fast & after_dead)
+    if len(hit):
+        return a + int(hit[0])
+    hidden = np.flatnonzero(~f.visible[a:b])
+    back = np.flatnonzero(f.visible[a + hidden[0]:b]) if len(hidden) else []
+    return a + int(hidden[0] + back[0]) if len(back) else None
+
+
 def channels(f, tags, params):
     """{name: (n,3) array} for every evidence channel of PLAN section 3 except the hard constraints."""
     n = f.n
     out = {name: np.zeros((n, 3)) for name in (
         "carry", "touch", "restart", "phase", "offpitch", "exit", "long_gap", "still", "low",
-        "setpiece", "latch")}
+        "setpiece", "latch", "goal", "formation")}
 
     carry = carry_events(f, params)
     _team_column(out["carry"], carry >= 0, carry, params.carry_w)
@@ -137,16 +158,49 @@ def channels(f, tags, params):
 
     for code, a, b, _ in tags:
         if code == SET_PIECE_CODE:
-            inside = t_frames[(t_frames >= a) & (t_frames < b)]
-            if len(inside):
+            if params.setpiece_launch:
+                c = launch_frame(f, still, params, a, b)
+                if c is None:   # nothing to anchor on: D for the median launch offset, then silence
+                    e = min(a + int(round(params.setpiece_fallback_s * f.fps)), b)
+                    out["setpiece"][a:e, D] += params.setpiece_w / (e - a)
+                    continue
+            else:
+                inside = t_frames[(t_frames >= a) & (t_frames < b)]
+                if not len(inside):
+                    continue
                 c = inside[0]
-                if c > a:
-                    out["setpiece"][a:c, D] += params.setpiece_w / (c - a)
-                out["setpiece"][c:b, :2] += params.setpiece_w / (b - c)
+            if c > a:
+                out["setpiece"][a:c, D] += params.setpiece_w / (c - a)
+            out["setpiece"][c:b, :2] += params.setpiece_w / (b - c)
+
+    # After a goal the ball is dead until the kick-off (law of the game): D from the goal to the
+    # restart candidate of the next kick-off-after-goal window, or to that window's start without
+    # one. A GOALS tag opens at the start of the scoring sequence, which here begins with a set
+    # piece and live play, so goal_after_setpiece starts the D at the end of the last other
+    # set-piece window the tag overlaps (and skips a goal whose tag overlaps none).
+    kickoffs = sorted((a, b) for code, a, b, _ in tags if code == KICKOFF_AFTER_GOAL_CODE)
+    if params.goal_dead_w > 0:
+        others = [(a, b) for code, a, b, _ in tags
+                  if code == SET_PIECE_CODE and (a, b) not in kickoffs]
+        for code, a, b, _ in tags:
+            if code == GOAL_CODE:
+                nxt = next(((ka, kb) for ka, kb in kickoffs if ka >= a), None)
+                c = None if nxt is None else launch_frame(f, still, params, *nxt)
+                end = b if nxt is None else (nxt[0] if c is None else c)
+                if params.goal_after_setpiece:
+                    a = max([wb for wa, wb in others if wa < end and wb > a], default=end)
+                out["goal"][a:end, D] += params.goal_dead_w
 
     last = np.maximum.accumulate(np.where(control >= 0, np.arange(n), -1))
     latest = np.where(last >= 0, control[np.maximum(last, 0)], -1)
     _team_column(out["latch"], latest >= 0, latest, params.latch_w)
+
+    if params.formation_w_vis > 0 or params.formation_w_blk > 0:
+        # Only the disfavoured team pays, so the best alive score against D does not move.
+        z = f.shape @ np.asarray(params.formation_coef)
+        w = np.where(f.visible, params.formation_w_vis, params.formation_w_blk)
+        out["formation"][:, A] -= w * np.maximum(z, 0.0)
+        out["formation"][:, H] -= w * np.maximum(-z, 0.0)
     return out
 
 

@@ -10,7 +10,9 @@ sys.path.insert(0, os.path.join(ROOT, "starter"))
 import games  # noqa: E402
 from baseline import team_of_each_track  # noqa: E402
 
-OUT = os.environ.get("BC_CACHE", "/tmp/bc_cache.npz")
+from possession.match import CACHE_DIR  # noqa: E402
+
+OUT = os.path.join(CACHE_DIR, "bc.npz")
 
 
 def parse(raw_path, n_slots):

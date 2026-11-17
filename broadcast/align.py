@@ -1,6 +1,6 @@
 """Per one-minute-chunk offset search over the whole broadcast. Saves a chunk table; prints counts.
 
-    python broadcast/align.py        # writes SCR/chunks.npz
+    python broadcast/align.py        # writes $MTAH_DATA_DIR/cache/chunks.npz
 
 tactical frame = broadcast frame + offset. Orientation: identity (checked by coarse.py).
 """
@@ -13,7 +13,7 @@ sys.path.insert(0, __file__.rsplit("/", 2)[0])
 from broadcast import core  # noqa: E402
 
 CHUNK = 1500
-LO, HI = 0, 12000          # coarse window around the ~4010 offset seen on probe chunks
+LO, STEP = 0, 8            # offsets 0..end of the tactical track, coarse step in frames
 tp, tt, _, _ = core.load_tactical()
 bp, bt, _ = core.load_broadcast()
 bpm = core.to_metres(bp, "id")
@@ -22,13 +22,13 @@ starts = np.arange(0, nb - CHUNK // 2, CHUNK)
 
 
 def one(start):
-    fr = np.arange(start, min(start + CHUNK, nb), 50)
-    off = np.arange(LO, HI, 3)
+    fr = np.arange(start, min(start + CHUNK, nb), 100)
+    off = np.arange(LO, len(tp) - start - CHUNK, STEP)
     s = core.score(bpm, bt, tp, tt, fr, off)
     if not np.isfinite(s).any():
         return start, -1, np.nan, np.nan
     i = int(np.nanargmin(s))
-    fine = np.arange(off[i] - 4, off[i] + 5)
+    fine = np.arange(off[i] - STEP, off[i] + STEP + 1)
     fr2 = np.arange(start, min(start + CHUNK, nb), 15)
     s2 = core.score(bpm, bt, tp, tt, fr2, fine)
     j = int(np.nanargmin(s2))
@@ -38,10 +38,10 @@ def one(start):
 
 
 if __name__ == "__main__":
-    with Pool(3) as p:
+    with Pool(7) as p:
         rows = p.map(one, starts, chunksize=1)
     tab = np.array(rows, dtype=np.float64)
-    np.savez(core.SCR + "/chunks.npz", tab=tab)
+    np.savez(core.CACHE + "/chunks.npz", tab=tab)
     good = np.isfinite(tab[:, 2]) & (tab[:, 2] < 2.5)
     print("chunks", len(tab), "with fit under 2.5 m", int(good.sum()))
     print("offset quantiles (good)", np.quantile(tab[good, 1], [0, .1, .5, .9, 1]))

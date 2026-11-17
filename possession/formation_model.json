@@ -1,0 +1,38 @@
+{
+ "features": [
+  "advance",
+  "forward_speed",
+  "length",
+  "width",
+  "in_opp_half"
+ ],
+ "coef": [
+  -0.042334,
+  0.209613,
+  0.039485,
+  0.436772,
+  1.882494
+ ],
+ "scale": [
+  32.954093,
+  3.543663,
+  5.124883,
+  3.894251,
+  0.588077
+ ],
+ "n_train_rows": 110627,
+ "n_train_rows_with_swap": 221254,
+ "matches": [
+  "dfl_J03WMX",
+  "dfl_J03WN1",
+  "dfl_J03WPY",
+  "dfl_J03WOH",
+  "dfl_J03WQQ",
+  "dfl_J03WOY",
+  "dfl_J03WR9"
+ ],
+ "variant": "atd",
+ "stride": 5,
+ "iters": 25,
+ "ridge": 0.001
+}

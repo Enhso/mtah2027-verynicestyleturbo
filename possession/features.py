@@ -96,6 +96,41 @@ class Features:
     opp_dist: np.ndarray         # (n,) distance to the nearest player of the other team
     near_v: np.ndarray           # (n,2) that player's centred velocity
     median_speed: np.ndarray     # (n,) median ATD speed over present slots
+    shape: np.ndarray            # (n,len(SHAPE_NAMES)) home-minus-away team shape, see team_shape
+
+
+SHAPE_NAMES = ("advance", "forward_speed", "length", "width", "in_opp_half")
+
+
+def team_shape(players, pv, team, pitch):
+    """(n,5) home minus away of per-team shape features, each in that team's own attack frame.
+
+    The attack direction is label-free, per period: home attacks towards the away team's side
+    (sign of the median over frames of away minus home mean x). Per team: mean x, mean forward
+    velocity, std x, std y, share of players in the opponent half. Coordinates are centred and the
+    sign is applied before any reduction, so reflecting both axes gives bit-identical features and
+    swapping the teams negates them exactly. Rows where a team has fewer than 2 players are 0.
+    """
+    length, width = pitch
+    xc, yc = players[:, :, 0] - length / 2.0, players[:, :, 1] - width / 2.0
+    present = np.isfinite(xc)
+    cols = [np.flatnonzero(team == side) for side in (HOME, AWAY)]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        s = np.sign(np.nanmedian(np.nanmean(xc[:, cols[1]], axis=1)
+                                 - np.nanmean(xc[:, cols[0]], axis=1)))
+        s = 0.0 if not np.isfinite(s) else float(s)
+        per = []
+        for side, c in zip((HOME, AWAY), cols):
+            d = s if side == HOME else -s
+            xa = d * xc[:, c]
+            per.append(np.stack([
+                np.nanmean(xa, axis=1), np.nanmean(d * pv[:, c, 0], axis=1),
+                np.nanstd(xa, axis=1), np.nanstd(yc[:, c], axis=1),
+                (xa > 0).sum(axis=1) / present[:, c].sum(axis=1)], axis=1))
+    out = np.nan_to_num(per[0] - per[1])
+    out[(present[:, cols[0]].sum(axis=1) < 2) | (present[:, cols[1]].sum(axis=1) < 2)] = 0.0
+    return out
 
 
 def compute(ball, players, speed, team, pitch, fps, params):
@@ -161,4 +196,5 @@ def compute(ball, players, speed, team, pitch, fps, params):
         n=n, fps=fps, visible=visible, ball=ball, run_id=rid, gaps=gaps, v_before=v_before,
         v_after=v_after, ball_v=ball_v, still_speed=still, line_dist=line_dist,
         out_normal=normals[side], offpitch=offpitch, near_team=near_team, near_dist=near_dist,
-        opp_dist=opp_dist, near_v=near_v, median_speed=median_speed)
+        opp_dist=opp_dist, near_v=near_v, median_speed=median_speed,
+        shape=team_shape(players, pv, team, pitch))

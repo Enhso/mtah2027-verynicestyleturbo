@@ -1,9 +1,9 @@
-version: v1 (Phase 3 calibration on the Metrica proxy, quantile transfer; see notes/calibration-progress.md)
-date: 2026-11-16
+version: v2 (v1 + set-piece launch rule + goal-to-kick-off rule + team-shape channel; see notes/restarts-progress.md, notes/formation-progress.md)
+date: 2026-11-17
 command: python -m possession
-code: git commit 400dd73 (branch submission)
-file: evaluation/results/Verynicestyleturbo.csv, copy at evaluation/results/Verynicestyleturbo_v1.csv (gitignored)
-sha256: e09133425dce724a8ddfb62054b6e1e10272343f0308b6a36946aee5457f1f88
+code: git commit 94b4414 (branch submission)
+file: evaluation/results/Verynicestyleturbo.csv, copy at evaluation/results/Verynicestyleturbo_v2.csv (gitignored)
+sha256: 1603cfd48e39dfd737633db256e37aa8a1803ccca71bd964d4d6baff1dbde6e4
 rows: 199319, validator OK, two consecutive plain runs of the command gave the same sha256
-smoke (scored once, selects nothing): spellF1 0.422, median latency -12 frames
-previous: v0 sha256 36e19f4c184f3e12629e77b7eb10b23b5492e91fa0ff5596205707bcd2dc0ce3 (Verynicestyleturbo_v0.csv)
+smoke (scored once, selects nothing): spellF1 0.487, median latency -13 frames
+previous: v1 sha256 e09133425dce724a8ddfb62054b6e1e10272343f0308b6a36946aee5457f1f88 (smoke 0.422); v0 36e19f4c184f3e12629e77b7eb10b23b5492e91fa0ff5596205707bcd2dc0ce3 (smoke 0.384)

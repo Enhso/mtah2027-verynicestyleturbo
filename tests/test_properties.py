@@ -224,6 +224,50 @@ def test_p9_same_bytes(tmp_path_factory, segments, dead_visible, seed):
     assert blobs[0] == blobs[1], "two runs wrote different bytes"
 
 
+# --- 10: restart tags stay where they were laid --------------------------------------------------
+
+@given(segment_lists(), st.booleans(), st.integers(0, 3), st.booleans(), st.booleans())
+@SLOW
+def test_p10_restart_channels_stay_inside_their_tags(segments, dead_visible, seed, launch, after_sp):
+    n = sum(f for _, f in segments)
+    assume(n > 700)
+    tags = [synth.tag("GOALS", 100, n - 200, team="Barcelona"),
+            synth.tag("SET PIECES", 120, 120 + 125, kind="Throw-in"),
+            synth.tag("SET PIECES", n - 250, n - 200 + 125, kind="Kick Off (After Goal)")]
+    m, _ = synth.make_match(segments, dead_visible, seed, tags)
+    p = Params(setpiece_launch=launch, goal_dead_w=1.0, goal_after_setpiece=after_sp)
+    f = features.compute(m.ball, m.players, m.speed, m.team, m.pitch, m.fps, p)
+    out = evidence.channels(f, evidence.localize_tags(m.tags, cfg.EMPTY, 0, n), p)
+    goal, sp = out["goal"], out["setpiece"]
+    assert not goal[:, :2].any(), "the goal rule put weight on H or A"
+    assert not goal[:100].any() and not goal[n - 200 + 125:].any(), "goal weight outside the stretch"
+    outside = np.ones(n, bool)
+    for a, b in ((120, 245), (n - 250, n - 75)):
+        outside[a:b] = False
+    assert not sp[outside].any(), "set-piece weight outside every set-piece window"
+
+
+# --- team-shape channel ------------------------------------------------------------------------
+
+@given(segment_lists(), st.booleans(), st.integers(0, 3), st.floats(0.0, 0.2), st.floats(0.0, 0.2))
+@SLOW
+def test_formation_channel_symmetry(segments, dead_visible, seed, w_vis, w_blk):
+    m, _ = synth.make_match(segments, dead_visible, seed)
+    p = Params(formation_w_vis=w_vis, formation_w_blk=w_blk)
+
+    def run(match):
+        f = features.compute(match.ball, match.players, match.speed, match.team, match.pitch,
+                             match.fps, p)
+        return f.shape, evidence.channels(f, [], p)["formation"]
+
+    shape, ch = run(m)
+    s_shape, s_ch = run(synth.swap_teams(m))
+    r_shape, r_ch = run(synth.reflect(m))
+    assert np.array_equal(s_shape, -shape) and np.array_equal(s_ch[:, [1, 0, 2]], ch), "swap"
+    assert np.array_equal(r_shape, shape) and np.array_equal(r_ch, ch), "reflection"
+    assert not ch[:, D].any() and (ch[:, :2].max(axis=1) == 0).all(), "favoured team or D moved"
+
+
 # --- supporting checks -------------------------------------------------------------------------
 
 def test_params_have_sources():
@@ -240,8 +284,10 @@ def test_absent_inputs_contribute_zero():
         speed=np.full((n, 4), np.nan, np.float32), team=np.array([0, 0, 1, 1], np.int8),
         periods=np.array([[0, n]], dtype=np.int64))
     f = features.compute(m.ball, m.players, m.speed, m.team, m.pitch, m.fps, Params())
-    total = evidence.evidence(f, [], Params())
-    assert not total.any(), "a channel fired with no ball, no speed and no tags"
+    # Players are present here, so the team-shape channel (which reads only players) may fire.
+    parts = evidence.channels(f, [], Params())
+    assert not any(v.any() for k, v in parts.items() if k != "formation"), \
+        "a channel fired with no ball, no speed and no tags"
     assert predict(m).shape == (n,)
 
 

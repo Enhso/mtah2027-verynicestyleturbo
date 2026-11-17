@@ -249,3 +249,29 @@ transfer	quantile transfer of 7 thresholds; still_speed not transferred	PLAN sec
 report	proxy scores v0 vs tuned vs shipped	before and after	python -m calibration.report	Metrica atd mean 0.498 -> 0.584 (shipped 0.575); atd+mask 0.370 -> 0.458 (0.446); clean 0.619 -> 0.664 (0.666); DFL mean 0.512 -> 0.573 (0.573)
 loo	summary	done-when: within 0.04 on every held-out game	calibration/results/loo_*.json	diffs -0.029, -0.028, 0.000: met
 v1	python -m possession, smoke scored once	release gates	notes/calibration-progress.md section 7	sha256 e0913342; D share 0.421, 3.08 possessions per minute, mean 11.3 s, home 0.569, set pieces 49 of 59, kick-off gate OUT (19 s, no restart), smoke spellF1 0.422 latency -12 (OUT on latency)
+formation loo	held out metrica_game1	adoption rule	w=0.02 smooth=0.0s all	{"atd": {"v1": 0.5486, "channel": 0.5571, "gain": 0.0085}, "atd+mask": {"v1": 0.4516, "channel": 0.493, "gain": 0.0414}}
+formation loo	held out metrica_game2	adoption rule	w=0.02 smooth=0.0s all	{"atd": {"v1": 0.5756, "channel": 0.5939, "gain": 0.0183}, "atd+mask": {"v1": 0.4445, "channel": 0.482, "gain": 0.0374}}
+formation loo	held out metrica_game3	adoption rule	w=0.05 smooth=0.0s all	{"atd": {"v1": 0.6003, "channel": 0.5744, "gain": -0.0259}, "atd+mask": {"v1": 0.4425, "channel": 0.4501, "gain": 0.0076}}
+formation run 2	held out metrica_game1	adoption rule	w_vis=0.02 w_blk=0.1	{"atd": {"base": 0.5486, "channel": 0.5613, "gain": 0.0127}, "atd+mask": {"base": 0.4516, "channel": 0.4876, "gain": 0.036}}
+formation run 2	held out metrica_game2	adoption rule	w_vis=0.02 w_blk=0.1	{"atd": {"base": 0.5756, "channel": 0.5986, "gain": 0.023}, "atd+mask": {"base": 0.4445, "channel": 0.4838, "gain": 0.0392}}
+formation run 2	held out metrica_game3	adoption rule	w_vis=0.02 w_blk=0.05	{"atd": {"base": 0.6003, "channel": 0.611, "gain": 0.0106}, "atd+mask": {"base": 0.4425, "channel": 0.4705, "gain": 0.028}}
+formation descent	pass 1 grid stop_cost	coordinate descent	2.0:0.5338 4.0:0.5367 6.0:0.5317 8.0:0.5256	stop_cost=4.0 J=0.5367
+formation descent	pass 1 grid restart_cost	coordinate descent	2.0:0.5338 4.0:0.5367 6.0:0.5313 8.0:0.5253	restart_cost=4.0 J=0.5367
+formation descent	pass 1 grid carry_w	coordinate descent	0.05:0.5035 0.1:0.5346 0.2:0.5367 0.4:0.4879 0.8:0.4240	carry_w=0.2 J=0.5367
+formation descent	pass 1 grid touch_w	coordinate descent	0.5:0.5266 1.0:0.5333 2.0:0.5367 4.0:0.4976	touch_w=2.0 J=0.5367
+formation descent	pass 1 grid turnover_cost	coordinate descent	2.0:0.5052 3.0:0.5367 4.0:0.5342 6.0:0.5021	turnover_cost=3.0 J=0.5367
+formation descent loo metrica_game1	pass 1 grid stop_cost	coordinate descent	2.0:0.5401 4.0:0.5429 6.0:0.5377 8.0:0.5296	stop_cost=4.0 J=0.5429
+formation descent loo metrica_game1	pass 1 grid restart_cost	coordinate descent	2.0:0.5401 4.0:0.5429 6.0:0.5372 8.0:0.5291	restart_cost=4.0 J=0.5429
+formation descent loo metrica_game1	pass 1 grid carry_w	coordinate descent	0.05:0.5093 0.1:0.5425 0.2:0.5429 0.4:0.4852 0.8:0.4195	carry_w=0.2 J=0.5429
+formation descent loo metrica_game1	pass 1 grid touch_w	coordinate descent	0.5:0.5279 1.0:0.5383 2.0:0.5429 4.0:0.4979	touch_w=2.0 J=0.5429
+formation descent loo metrica_game1	pass 1 grid turnover_cost	coordinate descent	2.0:0.5063 3.0:0.5429 4.0:0.5400 6.0:0.5079	turnover_cost=3.0 J=0.5429
+formation descent loo metrica_game2	pass 1 grid stop_cost	coordinate descent	2.0:0.5318 4.0:0.5345 6.0:0.5315 8.0:0.5283	stop_cost=4.0 J=0.5345
+formation descent loo metrica_game2	pass 1 grid restart_cost	coordinate descent	2.0:0.5318 4.0:0.5345 6.0:0.5315 8.0:0.5283	restart_cost=4.0 J=0.5345
+formation descent loo metrica_game2	pass 1 grid carry_w	coordinate descent	0.05:0.4951 0.1:0.5219 0.2:0.5345 0.4:0.4956 0.8:0.4329	carry_w=0.2 J=0.5345
+formation descent loo metrica_game2	pass 1 grid touch_w	coordinate descent	0.5:0.5168 1.0:0.5249 2.0:0.5345 4.0:0.5027	touch_w=2.0 J=0.5345
+formation descent loo metrica_game2	pass 1 grid turnover_cost	coordinate descent	2.0:0.5116 3.0:0.5345 4.0:0.5260 6.0:0.4921	turnover_cost=3.0 J=0.5345
+formation descent loo metrica_game3	pass 1 grid stop_cost	coordinate descent	2.0:0.5295 4.0:0.5328 6.0:0.5258 8.0:0.5190	stop_cost=4.0 J=0.5328
+formation descent loo metrica_game3	pass 1 grid restart_cost	coordinate descent	2.0:0.5295 4.0:0.5328 6.0:0.5252 8.0:0.5185	restart_cost=4.0 J=0.5328
+formation descent loo metrica_game3	pass 1 grid carry_w	coordinate descent	0.05:0.5061 0.1:0.5395 0.2:0.5328 0.4:0.4828 0.8:0.4195	carry_w=0.1 J=0.5395
+formation descent loo metrica_game3	pass 1 grid touch_w	coordinate descent	0.5:0.4900 1.0:0.5103 2.0:0.5395 4.0:0.5137	touch_w=2.0 J=0.5395
+formation descent loo metrica_game3	pass 1 grid turnover_cost	coordinate descent	2.0:0.5279 3.0:0.5395 4.0:0.5188 6.0:0.4644	turnover_cost=3.0 J=0.5395
